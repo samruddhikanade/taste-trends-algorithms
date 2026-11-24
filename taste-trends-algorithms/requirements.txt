@@ -1,0 +1,10 @@
+# Tested combination for Windows 10/11: Python 3.10 or 3.11 + Java 17 (Temurin).
+# Pinned so the code and the installed library versions match exactly.
+pyspark==3.5.3
+pandas==2.2.3
+numpy==1.26.4
+pyarrow==17.0.0
+plotly==5.24.1
+streamlit==1.39.0
+pyyaml==6.0.2
+pytest==8.3.3

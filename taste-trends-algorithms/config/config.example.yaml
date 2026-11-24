@@ -1,0 +1,87 @@
+# ---------------------------------------------------------------------------
+# TASTE, TRENDS & ALGORITHMS - configuration
+#
+# Copy this file to config/config.yaml and edit it. If config/config.yaml does
+# not exist, this example file is used as-is.
+#
+# Choose a mode on the command line:  --mode dev   or   --mode full
+#   dev  -> MovieLens "latest-small" (~100k ratings). Runs in ~2-4 minutes.
+#   full -> MovieLens 25M (25,000,095 ratings). Needs >= 8 GB RAM; 20-60 min.
+# ---------------------------------------------------------------------------
+
+project:
+  name: "Taste, Trends & Algorithms"
+  random_seed: 42
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  models_dir: models
+  results_dir: reports/results
+  figures_dir: reports/figures
+  spark_tmp_dir: data/spark-tmp
+
+datasets:
+  full:
+    url: https://files.grouplens.org/datasets/movielens/ml-25m.zip
+    folder: ml-25m
+    # GroupLens publishes a checksum file; the download script verifies against it.
+    md5_url: https://files.grouplens.org/datasets/movielens/ml-25m.zip.md5
+  dev:
+    url: https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
+    folder: ml-latest-small
+    md5_url: ""
+
+modes:
+  dev:
+    dataset: dev
+    sample_fraction: 1.0          # fraction of ratings to keep (by user) after loading
+    driver_memory: "2g"
+    shuffle_partitions: 8
+    min_ratings_top_rated: 50     # threshold for "highest rated" movies
+    tuning:
+      enabled: true
+      sample_fraction: 1.0
+      ranks: [8, 16]
+      reg_params: [0.05, 0.1, 0.2]
+      max_iter: 10
+    als:
+      max_iter: 15
+      candidate_k: 150            # candidates fetched per user before removing seen movies
+    evaluation:
+      max_eval_users: 1000
+      relevance_threshold: 4.0
+      k: 10
+  full:
+    dataset: full
+    sample_fraction: 1.0
+    driver_memory: "6g"           # reduce to "4g" on an 8 GB laptop if Spark crashes
+    shuffle_partitions: 48
+    min_ratings_top_rated: 1000
+    tuning:
+      enabled: true
+      sample_fraction: 0.1        # tune on 10% of users to save time
+      ranks: [10, 20]
+      reg_params: [0.05, 0.1]
+      max_iter: 8
+    als:
+      max_iter: 10
+      candidate_k: 150
+    evaluation:
+      max_eval_users: 5000
+      relevance_threshold: 4.0
+      k: 10
+
+als_defaults:
+  rank: 10
+  reg_param: 0.1
+  implicit_prefs: false
+  nonnegative: false
+  cold_start_strategy: drop
+  test_fraction: 0.2
+  validation_fraction: 0.2        # carved out of the training set during tuning
+
+spark:
+  master: "local[*]"
+  app_name: "TasteTrendsAlgorithms"
+  log_level: "WARN"
